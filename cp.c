@@ -8,8 +8,10 @@
 #include <limits.h>
 #include <unistd.h>
 
+#define BUFFER 64
+
 void fileCopy (char *dir1, char *dir2) {
-	char buffer;
+	char buffer[BUFFER + 1];
 	int readQuantity;
 	int fd1 = open (dir1, O_RDONLY );
 	int fd2 = open(dir2, O_WRONLY | O_CREAT, 0777 );
@@ -17,7 +19,7 @@ void fileCopy (char *dir1, char *dir2) {
 		printf ("Error. Can't open the file\n");
 		exit(1);
 	}
-	if (readQuantity = read( fd1, &buffer, sizeof(buffer)) > 0) {
+	if ((readQuantity = read( fd1, &buffer, sizeof(buffer))) > 0) {
 		if (write(fd2, &buffer, readQuantity) < 0) {
 			printf ("Can't write\n");
 			exit(1);
@@ -27,53 +29,49 @@ void fileCopy (char *dir1, char *dir2) {
 	close(fd2);
 }
 
-void directoryCopy (char *dir1, char *dir2) {
-	DIR *d1;
-	struct dirent *direntQ;
+void directoryCopy(char *dir1, char *dir2) {
+	DIR *path1, *pathr2;   
+	struct dirent *into;
 	struct stat statQ;
+	char nd1[ PATH_MAX + 1];
+	char nd2[ PATH_MAX + 1];
 
-	d1 = opendir (dir1);
-	if (!d1) {
-		printf("Error. Can't open the directory\n");
+	path1 = opendir(dir1);   
+
+	if (!path1) {
+		printf ("Cannot open file '%s'\n", dir1);
+		exit(1);
+	}
+	if (mkdir(dir2, 0777) < 0){
+		printf("Cannot make directory '%s'\n", dir2);
 		exit(1);
 	}
 
+	while ((into = readdir(path1)) != NULL) {
+		if (into -> d_name[0] == '.')
+		    continue;
 
-	if (mkdir(dir2, 0777) < 0) {
-		printf ("Error. Can't create such a directory\n");
-		exit(1);
-	}
+		strncpy(nd1, dir1, PATH_MAX);
+		strncpy(nd2, dir2, PATH_MAX);
+		strncat(nd1, "/", PATH_MAX);
+		strncat(nd2, "/", PATH_MAX);
+		strncat(nd1, into -> d_name, PATH_MAX);
+		strncat(nd2, into -> d_name, PATH_MAX);
 
-	char path1[PATH_MAX + 1];
-	char path2[PATH_MAX + 1];
-	
-	while ((direntQ = readdir(d1)) != NULL) {
-		if (direntQ -> d_name[0] != '.')
-			continue;
-		
-		 strncpy(path1, dir1, PATH_MAX);	
-        	 strncpy(path2, dir2, PATH_MAX);
-        	 strncat(path1, "/", PATH_MAX);
-        	 strncat(path2, "/", PATH_MAX);
-        	 strncat(path1, direntQ -> d_name, PATH_MAX);
-        	 strncat(path2, direntQ -> d_name, PATH_MAX);
-
-		if (stat (path1, &statQ)) {
-			printf ("Error, can't open the file\n");
+		if (stat(nd1, &statQ) < 0)
+		{
+			fprintf (stderr, "ls: Cannot open file\n");
 			exit(1);
 		}
 
-		if (statQ.st_mode & S_IFREG) {
-			fileCopy(path1, path2);
-		}
-		if (statQ.st_mode & S_IFDIR) {
-			directoryCopy(path1, path2);
-		}
+		if (statQ.st_mode & S_IFREG)
+			fileCopy(nd1, nd2);
 
-		closedir(d1);
-
+		if (statQ.st_mode & S_IFDIR)
+			directoryCopy(nd1, nd2);
+	}
+	closedir(path1);
 }
-
 
 int main( int argc, char **argv) {
     
