@@ -11,10 +11,10 @@
 #define BUFFER 64
 
 void fileCopy (char *dir1, char *dir2) {
-	char buffer[BUFFER + 1];
-	int readQuantity;
 	int fd1 = open (dir1, O_RDONLY );
 	int fd2 = open(dir2, O_WRONLY | O_CREAT, 0777 );
+	char buffer[BUFFER + 1];
+	int readQuantity;
 	if (fd1 < 0 || fd2 < 0) {
 		printf ("Error. Can't open the file\n");
 		exit(1);
@@ -33,11 +33,9 @@ void directoryCopy(char *dir1, char *dir2) {
 	DIR *path1, *pathr2;   
 	struct dirent *into;
 	struct stat statQ;
+	path1 = opendir(dir1);   
 	char nd1[ PATH_MAX + 1];
 	char nd2[ PATH_MAX + 1];
-
-	path1 = opendir(dir1);   
-
 	if (!path1) {
 		printf ("Cannot open file '%s'\n", dir1);
 		exit(1);
@@ -73,7 +71,7 @@ void directoryCopy(char *dir1, char *dir2) {
 	closedir(path1);
 }
 
-int main( int argc, char **argv) {
+int main(int argc, char **argv) {
     
 	struct stat statQ;
     
@@ -82,7 +80,7 @@ int main( int argc, char **argv) {
 		exit (1);
 	}
     
-	if (stat( argv[1] , &statQ ) < 0) {
+	if (stat(argv[1] , &statQ) < 0) {
 		printf(" Cannot open file\n");
 		exit(1);
 	}
