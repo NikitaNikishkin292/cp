@@ -19,7 +19,7 @@ void fileCopy (char *dir1, char *dir2) {
 		printf ("Error. Can't open the file\n");
 		exit(1);
 	}
-	if ((readQuantity = read( fd1, &buffer, sizeof(buffer))) > 0) {
+	while ((readQuantity = read( fd1, &buffer, sizeof(buffer))) > 0) {
 		if (write(fd2, &buffer, readQuantity) < 0) {
 			printf ("Can't write\n");
 			exit(1);
